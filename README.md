@@ -22,4 +22,4 @@ For example :- python pipeline.py genjson-0.json
 
 # Output
 The output should be mostly self-explanatory.
-The valid exchanges are printed as weel as a visual graph is also saved as an image.
+The valid exchanges are printed as well as a visual graph is also saved as an image.
