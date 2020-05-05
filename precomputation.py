@@ -2,6 +2,8 @@ from itertools import combinations
 from itertools import permutations
 
 
+
+
 class CyclePrecomputation:
 
 	all_cycles = []
@@ -11,25 +13,22 @@ class CyclePrecomputation:
 		all_cycles = []
 		cycles = []
 
+
+
 	def find_cycles (self,Names,malength):
 		for i in range(2,malength+1):
 			comb = combinations(Names, i)
 			temp = []
 			for lis in comb :
 				com = lis[1:]
-
 				perm = permutations(com) 
-
-				
 
 				for per in perm:
 					fin = []
 					fin.append(lis[0])
 					fin.extend(per)
 					fin.append(lis[0])
-
 					self.all_cycles.append(fin)	
-
 
 
 
@@ -45,7 +44,6 @@ class CyclePrecomputation:
 						fin = []
 						fin.append(node)
 						fin.extend(per)
-
 						self.all_cycles.append(fin)
 
 
@@ -55,10 +53,10 @@ class CyclePrecomputation:
 				edge = [cycle[i],cycle[i+1]]
 				
 				if  edge not in edges :
-					#print(edge,"NOT")
 					return False
 
 		return True
+
 
 
 	def find_cycles_in_graph(self,edges):
@@ -66,10 +64,10 @@ class CyclePrecomputation:
 			if self.check_cycle(cycle,edges) == True:
 				self.cycles.append(tuple(cycle))
 	    		
-
 		return self.cycles
 		
-		
+	
+
 	def findwt(self,cycles,weight):
 		cycleswt ={}
 		for cycle in cycles:
@@ -82,12 +80,15 @@ class CyclePrecomputation:
 		return cycleswt
 
 
+
 	def findCyclesAndChains(self,names,max_cycle_length,max_chain_length,altruists,edges):
 		self.find_cycles(names, max_cycle_length)
 		self.find_chains(names,max_chain_length, altruists)
 		self.find_cycles_in_graph(edges)
-		print(self.cycles)
+		
 		return self.cycles
+
+
 
 	def check_backarc(self,cycle, edges):
 		for i in range(0,len(cycle) - 1):

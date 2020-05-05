@@ -1,4 +1,4 @@
-#!/usr/bin/python
+	#!/usr/bin/python
 # ---------------------------------------------------------------------------
 # File: vertex_cover.py
 # Version 12.9.0
@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------
 """Input is a graph.
 
-"""
+"""  
 from __future__ import print_function
 
 import sys
@@ -24,7 +24,7 @@ from itertools import combinations
 from itertools import permutations
 import datetime
 
-#from inputdata import read_dat_file
+
 
 
 
@@ -37,27 +37,33 @@ def removechains(cycles):
 
 
 
-def maximize_pairwise_exchange(cycles,vertices):
+def maximize_pairwise_exchange(cycles,vertices,dirname):
 	onlyCycles = removechains(cycles)
-	solution_values = optimize_length(onlyCycles,vertices)
-	return solution_values
-
-def maximize_total_transplants(cycles,vertices):
-	solution_values = optimize_length(cycles,vertices)
-	return solution_values
-
-def maximize_total_weight(cycles,vertices,cycle_wt):
-	solution_values = optimize_weight(cycles,vertices,cycle_wt)
+	solution_values = optimize_length(onlyCycles,vertices,dirname)
+	print (solution_values)
 	return solution_values
 
 
 
-def optimize_length(cycles,vertices):
+def maximize_total_transplants(cycles,vertices,dirname):
+	solution_values = optimize_length(cycles,vertices,dirname)
+	return solution_values
 
+
+
+def maximize_total_weight(cycles,vertices,cycle_wt,dirname):
+	solution_values = optimize_weight(cycles,vertices,cycle_wt,dirname)
+	return solution_values
+
+
+
+def optimize_length(cycles,vertices,dirname):
 	prob = cplex.Cplex()
 	prob.set_problem_name("KIDNEY EXCHANGE")
+
 	names = []
-	prob.set_problem_type(cplex.Cplex.problem_type.LP)\
+
+	prob.set_problem_type(cplex.Cplex.problem_type.LP)
 
 	obj =[]
 	for cycle in cycles:
@@ -68,9 +74,10 @@ def optimize_length(cycles,vertices):
 	for cycle in cycles:
 		names.append("c_%s" % str(cycle))
 		i = i+1
+
 	prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
                     ub=[1] * len(names),
-                    types=["C"] * len(names))
+                    types=["B"] * len(names))
 
 
 	constraints = []
@@ -87,53 +94,37 @@ def optimize_length(cycles,vertices):
 			constraint_names.append("v" + str(v))
 			prob.linear_constraints.add(lin_expr=[cplex.SparsePair(constraint, [1] * len(constraint))],senses=['L'],rhs=[1],names=constraint_names)
 
-	print("Constraint Names")
-	print(prob.linear_constraints.get_names())
-
-	print("Names")
-	print(names)
-
-
-	
 	prob.objective.set_sense(prob.objective.sense.maximize)
-	prob.write(str(datetime.datetime.now()) + "optimize_length.lp")
+	prob.write(dirname +"/" + "optimize_length.lp")
 
 	prob.solve()
 
 	return prob.solution.get_values()
 
-	#types = [(var, prob.variables.type.binary) for var in Names]
-	# prob.variables.set_types(types)
 
 
-
-def optimize_weight(cycles,vertices,weight):
-	
-	
-	
-
-
+def optimize_weight(cycles,vertices,weight,dirname):
 	prob = cplex.Cplex()
 	prob.set_problem_name("KIDNEY EXCHANGE")
+
 	names = []
+
 	prob.set_problem_type(cplex.Cplex.problem_type.LP)\
 
 	obj =[]
 	for cycle in cycles:
 		obj.append(weight[tuple(cycle)])
+
 	c={}
 	i = 0
 	for cycle in cycles:
 		names.append("c_%s" % str(cycle))
 		i = i+1
+
 	prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
                     ub=[1] * len(names),
                     types=["B"] * len(names))
 
-
-	
-
-	print(c)
 	constraints = []
 	constraint_names =[]
 	for v in vertices:
@@ -143,25 +134,16 @@ def optimize_weight(cycles,vertices,weight):
 			if v in cycle:
 				constraint.append(names[i])
 			i = i+1
-		print(constraint)
 		if constraint:
 			names.append("v" + v)
 			prob.linear_constraints.add(lin_expr=[cplex.SparsePair(constraint, [1] * len(constraint))],senses=['L'],rhs=[1],names=constraint_names)
 
-
-	
-
 	prob.objective.set_sense(prob.objective.sense.maximize)
-	prob.write(str(datetime.datetime.now()) + "optimize_weight.lp")
+	prob.write(dirname +"/" + "optimize_weight.lp")
 	
-
 	prob.solve()
+
 	return prob.solution.get_values()
-
-	#types = [(var, prob.variables.type.binary) for var in Names]
-	# prob.variables.set_types(types)
-
-
 
 
 
@@ -180,10 +162,6 @@ def kidney_exchange(names,edges,ma,weight,altruists):
 		optimize_weight(cycles,names,cycleswt,ma)
 
 
-
-
-
-	#solution(names,no_of_transplant)
 
 if __name__ == "__main__":
 	names = ['0','1','2','3']
