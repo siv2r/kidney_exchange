@@ -20,8 +20,7 @@ import sys
 
 import cplex
 from cplex.exceptions import CplexSolverError
-from itertools import combinations 
-from itertools import permutations
+from precomputation import CyclePrecomputation
 import datetime
 
 
@@ -37,9 +36,21 @@ def removechains(cycles):
 
 
 
-def maximize_pairwise_exchange(cycles,vertices,dirname):
-	onlyCycles = removechains(cycles)
-	solution_values = optimize_length(onlyCycles,vertices,dirname)
+def maximize_pairwise_exchange(cycles,vertices,dirname,edges):
+	coef = []
+	precomputation = CyclePrecomputation()
+
+	for cycle in cycles:
+
+		x = precomputation.calculate_backarc(cycle,edges) #+ len(cycle)
+		x = x + len(cycle)
+		print(cycle,"       ",x,"    ",len(cycle),"     ",x-len(cycle))
+		coef.append(x)
+
+
+	solution_values = optimize_length(cycles,vertices,dirname,coef)
+
+	
 	print (solution_values)
 	return solution_values
 
@@ -47,27 +58,34 @@ def maximize_pairwise_exchange(cycles,vertices,dirname):
 
 def maximize_total_transplants(cycles,vertices,dirname):
 	solution_values = optimize_length(cycles,vertices,dirname)
+	print(solution_values)
 	return solution_values
 
 
 
 def maximize_total_weight(cycles,vertices,cycle_wt,dirname):
 	solution_values = optimize_weight(cycles,vertices,cycle_wt,dirname)
+	print(solution_values)
 	return solution_values
 
 
 
-def optimize_length(cycles,vertices,dirname):
+def optimize_length(cycles,vertices,dirname, coef):
 	prob = cplex.Cplex()
 	prob.set_problem_name("KIDNEY EXCHANGE")
 
 	names = []
 
+	#Set problem type as LP or ILP
 	prob.set_problem_type(cplex.Cplex.problem_type.LP)
 
 	obj =[]
-	for cycle in cycles:
-		obj.append(len(cycle))
+	#coeffecients of the objective function
+	# for cycle in cycles:
+	# 		obj.append(len(cycle))
+
+	obj = coef
+
 	
 	c={}
 	i = 0
@@ -75,9 +93,23 @@ def optimize_length(cycles,vertices,dirname):
 		names.append("c_%s" % str(cycle))
 		i = i+1
 
-	prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
+	#Adds variable and related data to problem
+    #obj is a list of floats, specifying linear objective coefficient of variables.
+    #lb:- lower bound, ub:- upper bound
+    #types must be either list of single-character string or a string containing types of variables
+    #names is a list of string
+    #column may be a list of sparse vector or matrix in a list of list format
+	option = int((input("Choose option\n1.ILP\n2.LP")))
+
+	if option == 1:
+		prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
                     ub=[1] * len(names),
                     types=["B"] * len(names))
+
+	elif option == 2:
+		prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
+                    ub=[1] * len(names),
+                    types=["C"] * len(names))
 
 
 	constraints = []
@@ -92,13 +124,31 @@ def optimize_length(cycles,vertices,dirname):
 			i = i+1
 		if constraint:
 			constraint_names.append("v" + str(v))
+			# Adds a linear constraint to the problem.
+			# lin_expr may either be a list of sparse pair instances, or matrix in a list of a list format.
+			# senses must be either a list of single-character string or a string containing the senses of linear constraint. Each entry must be one of ‘G’, ‘L’, ‘E’, ‘R’ ->greater than, less than, equality and ranged constraint.
+			# rhs is a list of floats specifying right hand side of each linear constraint.
+			# returns an iterator containing indices of added linear constraint
 			prob.linear_constraints.add(lin_expr=[cplex.SparsePair(constraint, [1] * len(constraint))],senses=['L'],rhs=[1],names=constraint_names)
 
 	prob.objective.set_sense(prob.objective.sense.maximize)
+	#dump the lp in file
 	prob.write(dirname +"/" + "optimize_length.lp")
 
+	start  = prob.get_time()
+
+	#Solving with local cplex
 	prob.solve()
 
+	end = prob.get_time()
+
+	print ("SUM IS",sum(prob.solution.get_values()))
+
+	print("*****************************************************************")
+	print(end-start)
+	print("*****************************************************************")
+
+	#return values of all variables from problem.
 	return prob.solution.get_values()
 
 
@@ -121,9 +171,18 @@ def optimize_weight(cycles,vertices,weight,dirname):
 		names.append("c_%s" % str(cycle))
 		i = i+1
 
-	prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
+	option = int((input("Choose option\n1.ILP\n2.LP")))
+
+	if option == 1:
+		prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
                     ub=[1] * len(names),
                     types=["B"] * len(names))
+
+	elif option == 2:
+		prob.variables.add(obj=obj,names=names, lb=[0] * len(names),
+                    ub=[1] * len(names),
+                    types=["C"] * len(names))
+
 
 	constraints = []
 	constraint_names =[]
@@ -140,8 +199,15 @@ def optimize_weight(cycles,vertices,weight,dirname):
 
 	prob.objective.set_sense(prob.objective.sense.maximize)
 	prob.write(dirname +"/" + "optimize_weight.lp")
+
+	start  = prob.get_time()
 	
 	prob.solve()
+
+	end = prob.get_time()
+	print("*****************************************************************")
+	print(end-start)
+	print("*****************************************************************")
 
 	return prob.solution.get_values()
 

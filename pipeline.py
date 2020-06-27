@@ -9,6 +9,7 @@ from kidney_exchange import maximize_total_transplants
 from kidney_exchange import maximize_total_weight
 from solution import print_solution
 import datetime
+import time
 import os
 import sys 
 import csv
@@ -33,6 +34,7 @@ def pipeline(n):
   # with open('kidney.csv', 'a', newline='') as file:
   #   writer = csv.DictWriter(file, fieldnames=fnames)
   #   writer.writeheader()
+  
   if len(sys.argv) != 2 :
       print("Error :Please specify number of nodes")
       sys.exit(-1)
@@ -76,16 +78,20 @@ def pipeline(n):
 
 
   #Basically maximizing the total number of cycles which does not involve altruistic donor
+  start = time.time()
   if option == 1:
     cyclesAndChains = precomputation.findCyclesAndChains(names,max_cycle_length,max_chain_length ,altruistic_donors,edges)
+    end = time.time()
+    print(cyclesAndChains)
     cycleandchain_wt = precomputation.findwt(cyclesAndChains,weight) 
-    solution_values = maximize_pairwise_exchange(cyclesAndChains,names,dirName)
-    transplants = print_solution(1, "Maximize the number of effective pairwise exchange", max_cycle_length, solution_valuesd, cyclesAndChains, altruistic_donors, edges, cycleandchain_wt, names,dirName)
+    solution_values = maximize_pairwise_exchange(cyclesAndChains,names,dirName,edges)
+    transplants = print_solution(1, "Maximize the number of effective pairwise exchange", max_cycle_length, solution_values, cyclesAndChains, altruistic_donors, edges, cycleandchain_wt, names,dirName)
     fillexcel(len(names),len(altruistic_donors),max_cycle_length,max_chain_length,transplants,"Maximize the number of effective pairwise exchange")
 
   #Maximize the number of patients that get a kidney. This will involve altruistic donors as well
   if option == 2:
     cyclesAndChains = precomputation.findCyclesAndChains(names,max_cycle_length,max_chain_length ,altruistic_donors,edges)
+    end = time.time()
     cycleandchain_wt = precomputation.findwt(cyclesAndChains,weight) 
     solution_values = maximize_total_transplants(cyclesAndChains,names+altruistic_donors,dirName)
     transplants = print_solution(1, "Maximize the total number of transplants", max_cycle_length, solution_values, cyclesAndChains, altruistic_donors, edges, cycleandchain_wt, names,dirName)
@@ -98,8 +104,9 @@ def pipeline(n):
   #Maximize the total weight calculated by summing over all cycles and chains
   if option == 4:
     cyclesAndChains = precomputation.findCyclesAndChains(names,max_cycle_length,max_chain_length ,altruistic_donors,edges)
+    end = time.time()
     cycleandchain_wt = precomputation.findwt(cyclesAndChains,weight) 
-    solution_values = maximize_total_weight(cycles,names + altruistic_donors,cycle_wt,dirName)
+    solution_values = maximize_total_weight(cyclesAndChains,names + altruistic_donors,cycleandchain_wt,dirName)
     transplants = print_solution(1, "Maximize the total weight", max_cycle_length, solution_values, cyclesAndChains, altruistic_donors, edges, cycleandchain_wt, names,dirName)
     fillexcel(len(names),len(altruistic_donors),max_cycle_length,max_chain_length,transplants,"Maximize the total weight")
 
@@ -110,6 +117,7 @@ def pipeline(n):
   #Maximize the number of pairwise exchange plus unused altruists:-
   if option == 6:
     cyclesAndChains = precomputation.findCyclesAndChains(names,2,1 ,altruistic_donors,edges)
+    end = time.time()
     cycleandchain_wt = precomputation.findwt(cyclesAndChains,weight) 
     solution_values = maximize_total_transplants(cyclesAndChains, names + altruistic_donors,dirName)
     transplants = print_solution(1, "Maximize pairwise exchange", 2, solution_values, cyclesAndChains, altruistic_donors, edges, cycleandchain_wt, names,dirName)
@@ -117,10 +125,15 @@ def pipeline(n):
 
 
 
+  
+  print("Runtime of the program is ",end - start)
+
+
+
 
 
 if __name__ == "__main__":
-   pipeline(1)
+  pipeline(1)
   
  
 

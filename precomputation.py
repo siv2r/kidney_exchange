@@ -1,5 +1,6 @@
 from itertools import combinations 
 from itertools import permutations
+import numpy
 
 
 
@@ -15,13 +16,77 @@ class CyclePrecomputation:
 
 
 
+
+
+	def permutations2(self,lst):
+		if len(lst) == 0:
+			return []
+
+		if len(lst) == 1:
+			return [lst]
+
+		l = []
+
+		for i in range(len(lst)):
+			m = lst[i]
+			remlst = lst[:i] + lst[i+1:]
+
+			for p in self.permutations2(remlst):
+				l.append([m]+p)
+
+		return l
+
+
+		
+		
+
+
+
+
+
+
+	def combinations2(self,lst,n):
+		if n==0:
+			return [[]]
+
+		l = []
+
+		for i in range(0,len(lst)):
+			m = lst[i]
+			remLst = lst[i+1:]
+			for p in self.combinations2(remLst,n-1):
+				l.append([m]+p)
+
+
+		return l
+
+
+
+
+
+
+		
+
+
+
+
+
+
+
+
+
+  
+    
+
+
+
 	def find_cycles (self,Names,malength):
 		for i in range(2,malength+1):
-			comb = combinations(Names, i)
+			comb = self.combinations2(Names, i)
 			temp = []
 			for lis in comb :
 				com = lis[1:]
-				perm = permutations(com) 
+				perm = self.permutations2(com) 
 
 				for per in perm:
 					fin = []
@@ -32,13 +97,14 @@ class CyclePrecomputation:
 
 
 
+
 	def find_chains(self,Names,malength,altruists):
 		for node in altruists:
 			for i in range(1,malength+1):
-				comb = combinations(Names,i)
+				comb = combinations2(Names,i)
 				temp = []
 				for lis in comb:
-					perm = permutations(lis)
+					perm = permutations2(lis)
 
 					for per in perm:
 						fin = []
@@ -84,9 +150,11 @@ class CyclePrecomputation:
 	def findCyclesAndChains(self,names,max_cycle_length,max_chain_length,altruists,edges):
 		self.find_cycles(names, max_cycle_length)
 		self.find_chains(names,max_chain_length, altruists)
-		self.find_cycles_in_graph(edges)
+		cycles = self.find_cycles_in_graph(edges)
+
+		#print(cycles)
 		
-		return self.cycles
+		return cycles
 
 
 
@@ -97,3 +165,15 @@ class CyclePrecomputation:
 				return True
 
 		return False
+
+
+	def calculate_backarc(self,cycle,edges):
+		ans = 0
+		if(len(cycle) == 3):
+			return 1
+		for i in range(0,len(cycle) - 1):
+			edge = [cycle[i+1],cycle[i]]
+			if edge in edges:
+				ans = ans + 1
+
+		return ans

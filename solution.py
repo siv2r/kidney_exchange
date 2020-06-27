@@ -20,7 +20,7 @@ def run_results(solution_values, cycles, altruistic, edges, cycleswt):
 	precomputation = CyclePrecomputation()
 
 	for i in range(0,len(solution_values)):
-		if solution_values[i] == 1:
+		if solution_values[i] != 0:
 			transplants = transplants + len(cycles[i])
 
 			if(cycles[i][0] == cycles[i][-1]):
@@ -34,13 +34,14 @@ def run_results(solution_values, cycles, altruistic, edges, cycleswt):
 				elif(len(cycles[i]) == 4):
 					three_ways = three_ways + 1
 					effective_pairwise = effective_pairwise + len(cycles[i]) - 1
-					if precomputation.check_backarc (cycles[i], edges) == True:
-						three_ways_embedded = three_ways_embedded + 1
+					
+					three_ways_embedded = three_ways_embedded + precomputation.calculate_backarc(cycles[i],edges)
 				else:
 					effective_pairwise = effective_pairwise + len(cycles[i]) - 1
 
 			else:
 				altruistic_involved = altruistic_involved + 1
+
 
 			weight = weight + cycleswt[tuple(cycles[i])]
 
@@ -55,7 +56,7 @@ def cyclesAndChains(cycles, solution_values):
 	length2_chain = []
 
 	for i in range(0,len(solution_values)):
-		if solution_values[i] == 1:
+		if solution_values[i] != 0:
 
 			if(cycles[i][0] == cycles[i][-1]):
 				if(len(cycles[i]) == 3):
@@ -99,7 +100,7 @@ def poolDescription(all_cycles):
 
 def print_graph(solution_values,cycles,names,altruistic_donors,dirname):
 	for i in range(0,len(solution_values)):
-		if solution_values[i] == 1:
+		if solution_values[i] != 0:
 			print(cycles[i])
 
 	values =[]
@@ -114,7 +115,7 @@ def print_graph(solution_values,cycles,names,altruistic_donors,dirname):
 	values = paired + altruists
 
 	for i in range(0,len(solution_values)):
-		if solution_values[i] == 1:
+		if solution_values[i] != 0:
 			for j in range(0,len(cycles[i])-1):
 				edge = (cycles[i][j],cycles[i][j+1])
 				G.add_edge(*edge)
