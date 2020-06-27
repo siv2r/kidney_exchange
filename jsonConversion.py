@@ -1,17 +1,16 @@
-
 import json
+
 
 
 
 class DataConvert:
 
   def convert_altruistic(self, file_name):
-
-
       names =[]
       edges =[]
       weight = {}
       altruistic = []
+
       with open(file_name) as json_file:
         data = json.load(json_file)
 
@@ -33,7 +32,6 @@ class DataConvert:
                   edges.append(edge)
                   weight[tuple(edge)] = matches["score"]
 
-
         for p in altruistic:
           for q in names:
             edge = [str(q),str(p)]
@@ -41,7 +39,7 @@ class DataConvert:
             weight[tuple(edge)] = 0
 
       return names, edges, weight, altruistic
-    
+
 
 
   def convert(file_name):
