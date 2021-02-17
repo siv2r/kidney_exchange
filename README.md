@@ -7,6 +7,9 @@ Given a pair of patient and donor where the donor is willing to donate his kidne
 # Prerequisites
 * Python 3
 * Cplex
+* Numpy
+* Prettytable
+* Matplotlib
 
 # Input
 1. A json file which consists of data represnting donors and patients and their comaptibility with score. 
